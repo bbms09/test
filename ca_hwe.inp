@@ -1,0 +1,52 @@
+* variable and table definition
+  
+man 3               * allow 4 categorical predictor variables 
+                    *  ('manifest' variables to LEM)
+res 1               * allow 1 variable to hold indices for patterns 
+                    *  of missingness (a 'response' variable to LEM)
+dim 7 3 3 3       * dimension table for these 5 variables: 
+                    *  'pattern variable' followed by 4 predictors
+lab R M P C       * label the variables in order dimensions given:
+                    *  R=patterns D=disease M=mother P=father C=child
+sub MPC MP MC PC M P C      * state allowable response patterns
+                                   *   ('subgroups' to LEM)                               
+  
+* model
+  
+mod MPC {cov(MP,1)  * 8 mating type parameters (9 via default intercept)
+          cov(M,2)  * 2 maternal genetic effects apply only to cases
+          cov(C,1)  * 2 child genetic effects apply only to cases
+          wei(MPC)} * weight vector for structural zeros and offsets
+          
+* data format
+
+rec 15               * expect 24 records in data file
+rco                  * records contain a count
+mis 9                * force missing value code to '9' (default '0')
+dat capa.txt       * specify file containing data
+  
+* design matrix and parameter specification
+  
+des [ 0 1 2 1 2 3 2 3 4     * m+f
+      0 1 0          * maternal effect: 1 copy
+     0 0 1          * maternal effect: 2 copies
+   *   0 1 0          * child effect: 1 copy
+      0 1 2        ] * child effect: 2 copies
+  
+*  values for weight vector
+  
+sta wei(MPC)
+ [ 1 0 0 1 1 0 0 1 0  1 1 0 1 2 1 0 1 1  0 1 0 0 1 1 0 0 1 ]  * D=1
+*  0 0 0 0 0 0 0 0 0  1 1 1 1 1 1 1 1 1  2 2 2 2 2 2 2 2 2 M copies
+*  0 0 0 1 1 1 2 2 2  0 0 0 1 1 1 2 2 2  0 0 0 1 1 1 2 2 2 P copies
+*  0 1 2 0 1 2 0 1 2  0 1 2 0 1 2 0 1 2  0 1 2 0 1 2 0 1 2 C copies
+
+* streamline output by suppressing certain defaults
+
+nco       * suppress table of conditional probabilities
+*nfr       * suppress tables of observed and fitted frequencies
+nR2       * suppress table of various R_squared measures
+  
+* optimization
+  
+new 10,1      * switch to Newton-Raphson after 10 EM iterations
